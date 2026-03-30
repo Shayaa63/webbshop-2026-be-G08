@@ -1,29 +1,12 @@
 import "dotenv/config";
 import express from "express";
-import mongoose from "mongoose";
 import productsRouter from "./routes/products.js";
 import authRouter from "./routes/auth.js";
 import cors from "cors";
 
 const app = express();
 
-let isConnected = false;
-
-async function connectDB() {
-  if (isConnected) return;
-  await mongoose.connect(process.env.MONGODB_URI);
-  isConnected = true;
-}
-
 // Middleware
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
 app.use(cors("*"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -39,6 +22,5 @@ app.get("/health", (req, res) => {
 
 app.use("/products", productsRouter);
 app.use("/auth", authRouter);
-//TODO: Add more routes as needed
 
 export default app;
