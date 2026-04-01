@@ -1,4 +1,4 @@
-import Trade from "../models/Trade.js";
+import Trade from "../models/Trades.js";
 
 export async function getTrades() {
     return await Trade.find();
@@ -44,3 +44,17 @@ export async function updateTradeStatus(tradeId, newStatus) {
         throw error;
     }
 }
+
+export async function deleteTrade(tradeId) {
+    try {
+        const trade = await Trade.findByIdAndDelete(tradeId);
+        if (!trade) {
+            throw new Error("Trade not found");
+        }
+        return trade;
+    } catch (error) {
+        console.error("Error deleting trade:", error);
+        throw error;
+    }
+}
+

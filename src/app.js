@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import plantsRouter from "./routes/plants.js";
+import tradesRouter from "./routes/trades.js";
 import authRouter from "./routes/auth.js";
 import cors from "cors";
 
@@ -21,6 +22,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/plants", plantsRouter);
+app.use("/trades", tradesRouter);
 app.use("/auth", authRouter);
 
 export default app;
