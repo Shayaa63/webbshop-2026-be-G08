@@ -1,15 +1,15 @@
 import { Router } from "express";
 import { 
-  getAllPlants, 
+  getPlants, 
   getPlantById, 
   createPlant 
-} from "../db/plant.js";
+} from "../db/plants.js";
 
 const router = Router();
 
 router.get('/', async (req, res) => {
     try {
-        const plants = await getAllPlants()
+        const plants = await getPlants()
         res.json(plants)
         } catch (error) {
             console.error("Error fetching plants:", error)
