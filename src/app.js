@@ -4,10 +4,27 @@ import plantsRouter from "./routes/plants.js";
 import tradesRouter from "./routes/trades.js";
 import authRouter from "./routes/auth.js";
 import cors from "cors";
+import mongoose from "mongoose";
 
 const app = express();
 
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) return;
+  await mongoose.connect(process.env.MONGODB_URI);
+  isConnected = true;
+}
+
 // Middleware
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 app.use(cors("*"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
