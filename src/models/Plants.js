@@ -47,7 +47,7 @@ const plantSchema = new mongoose.Schema(
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false
     },
 
     // Whether the plant is still available for trading.
