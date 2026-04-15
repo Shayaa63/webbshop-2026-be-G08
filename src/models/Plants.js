@@ -7,14 +7,12 @@ const plantSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-feature/admin
     species: {
       type: String,
       required: true,
       trim: true,
     },
 
-Development
     description: {
       type: String,
       trim: true,
