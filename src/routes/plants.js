@@ -14,12 +14,15 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   try {
-    const plants = await getPlants();
+    const { name, lightLevel } = req.query;
+    const plants = await getPlants({ name, lightLevel });
     res.json(plants);
   } catch (error) {
+    console.error("Error fetching plants:", error);
     res.status(500).json({ error: "Failed to fetch plants" });
   }
 });
+
 
 router.get("/mine", protect, async (req, res) => {
   try {
@@ -32,11 +35,12 @@ router.get("/mine", protect, async (req, res) => {
 
 router.get('/owner/:ownerId', protect, adminOnly, async (req, res) => {
   try {
-    const plants = await getPlantsByOwner(req.params.ownerId);
+    const plants = await getPlantsByOwner(req.params.ownerId);          
     res.json(plants);
   } catch (error) {
+    console.error("Error fetching plants by owner:", error);
     res.status(500).json({ error: "Failed to fetch plants by owner" });
-  }
+  }   
 });
 
 router.get('/:id', async (req, res) => {

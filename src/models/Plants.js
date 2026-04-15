@@ -5,7 +5,43 @@ const plantSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true,
+      enum: [
+        // Bladväxter
+        "Monstera",
+        "Efeutute",
+        "Svärmorstunga",
+        "Fredslilja",
+        "Gummiträd",
+        "Fiolbladsfikonträd",
+        "Spindelplanta",
+        "ZZ-växt",
+        "Filodendron",
+        "Pilea",
+
+        // Suckulenter & Kaktusar
+        "Aloe Vera",
+        "Echeveria",
+        "Jadeplanta",
+        "Kaktus",
+        "Haworthia",
+
+        // Blomväxter
+        "Orkidé",
+        "Afrikanskt Viol",
+        "Kalanchoe",
+        "Anthurium",
+        "Begonia",
+
+        // Klätter & Hängande
+        "Murgröna",
+        "Tradescantia",
+        "Gullranka",
+        "Hängande Ampellilja",
+        "Passionsblomma",
+
+        // Övrigt
+        "Övrigt"
+      ],
     },
     species: {
       type: String,
