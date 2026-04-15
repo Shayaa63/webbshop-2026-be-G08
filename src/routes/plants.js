@@ -12,13 +12,14 @@ const router = Router();
 
 router.get('/', async (req, res) => {
     try {
-        const plants = await getPlants()
-        res.json(plants)
-        } catch (error) {
-            console.error("Error fetching plants:", error)
-            res.status(500).json({ error: "Failed to fetch plants" })
-            }
-            });
+        const { name, lightLevel } = req.query;
+        const plants = await getPlants({ name, lightLevel });
+        res.json(plants);
+    } catch (error) {
+        console.error("Error fetching plants:", error);
+        res.status(500).json({ error: "Failed to fetch plants" });
+    }
+});
 
 router.get('/:id', async (req, res) => {
     try {

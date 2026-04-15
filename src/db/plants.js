@@ -1,7 +1,12 @@
 import Plant from "../models/Plants.js";
 
-export async function getPlants() {
-    return await Plant.find();
+export async function getPlants(filters = {}) {
+  const query = {};
+
+  if (filters.name) query.name = filters.name;
+  if (filters.lightLevel) query.lightLevel = Number(filters.lightLevel);
+
+  return await Plant.find(query);
 }
 
 export async function createPlant(plantData) {

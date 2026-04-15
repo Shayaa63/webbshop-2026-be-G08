@@ -5,6 +5,7 @@ import plantsRouter from "./routes/plants.js";
 import tradesRouter from "./routes/trades.js";
 import authRouter from "./routes/auth.js";
 import cors from "cors";
+import notificationsRouter from "./routes/notifications.js";
 
 const app = express();
 
@@ -41,5 +42,6 @@ app.get("/health", (req, res) => {
 app.use("/plants", plantsRouter);
 app.use("/trades", tradesRouter);
 app.use("/auth", authRouter);
+app.use("/notifications", notificationsRouter);
 
 export default app;
