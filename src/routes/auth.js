@@ -4,6 +4,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { validateRegister, validateAuthResult } from "../middleware/authValidation.js";
 import { createUser, findUserByEmail } from "../db/users.js";
+import User from "../models/User.js";
+import { adminOnly } from "../middleware/adminMiddleware.js";
 
 const router = Router();
 
@@ -51,7 +53,7 @@ router.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -62,6 +64,7 @@ router.post("/login", async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -75,6 +78,24 @@ router.get("/me", protect, (req, res) => {
     message: "Du är inloggad 🔥",
     user: req.user,
   });
+});
+
+router.put("/me", protect, async (req, res) => {
+  const user = await User.findById(req.user.userId);
+
+  if (req.body.email) user.email = req.body.email;
+  if (req.body.password) user.password = req.body.password;
+
+  await user.save();
+
+  res.json({ message: "User updated" });
+});
+
+router.patch("/:id/role", protect, adminOnly, async (req, res) => {
+  const user = await User.findById(req.params.id);
+  user.role = req.body.role; // "admin" eller "user"
+  await user.save();
+  res.json({ message: "Role updated", user });
 });
 
 export default router;

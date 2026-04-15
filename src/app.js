@@ -16,7 +16,6 @@ async function connectDB() {
   isConnected = true;
 }
 
-// Middleware
 app.use(async (req, res, next) => {
   try {
     await connectDB();
@@ -25,11 +24,11 @@ app.use(async (req, res, next) => {
     next(err);
   }
 });
-app.use(cors("*"));
+
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
 app.get("/", (req, res) => {
   res.json({ message: "Webbshop API", stack: "MEN (MongoDB, Express, Node.js)" });
 });
@@ -38,8 +37,8 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/auth", authRouter);
 app.use("/plants", plantsRouter);
 app.use("/trades", tradesRouter);
-app.use("/auth", authRouter);
 
 export default app;
