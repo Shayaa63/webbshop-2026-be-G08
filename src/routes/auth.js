@@ -16,14 +16,15 @@ router.post(
   async (req, res) => {
     try {
       const { name, email, password } = req.body;
+      const normalizedEmail = email.toLowerCase();
 
-      const existingUser = await findUserByEmail(email);
+      const existingUser = await findUserByEmail(normalizedEmail);
       if (existingUser) {
         return res.status(409).json({ error: "Email already registered" });
       }
       const user = await createUser({
         name,
-        email,
+        email: normalizedEmail,
         password,
       });
       res.status(201).json({
