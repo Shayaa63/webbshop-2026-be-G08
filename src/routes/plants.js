@@ -9,6 +9,8 @@ import {
 } from "../db/plants.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { adminOnly } from "../middleware/adminMiddleware.js";
+import { validatePlants, validatePlantResult, validatePlantUpdate } from "../middleware/plantsValidation.js";
+import { validationResult } from "express-validator";
 
 const router = Router();
 
@@ -55,7 +57,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', protect, async (req, res) => {
+router.post('/', protect, validatePlants, validatePlantResult, async (req, res) => {
   console.log("REQ USER IN POST:", req.user);
   try {
     const newPlant = await createPlant({
@@ -105,6 +107,12 @@ router.put('/:id', protect, async (req, res) => {
       req.user.role !== "admin"
     ) {
       return res.status(403).json({ error: "Not allowed" });
+    }
+
+    await Promise.all(validatePlantUpdate.map(v => v.run(req)));
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ errors: result.array() });
     }
 
     const updatedPlant = await updatePlant(req.params.id, req.body);

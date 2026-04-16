@@ -1,4 +1,4 @@
-import Notification from "../models/Notification.js";
+import Notification from "../models/Notifications.js";
 
 // Creates a new notification.
 // Called from the trades route whenever a trade event happens.
