@@ -6,6 +6,7 @@ import {
   getTradesByUser as getTradesByUserDB,
   updateTradeStatus,
 } from "../db/trades.js";
+import { getPlantById } from "../db/plants.js";
 
 import { createNotification } from "../db/notifications.js";
 
@@ -21,15 +22,49 @@ export const getAllTrades = async (req, res) => {
   }
 };
 
-//
-// GET TRADES BY USER
-//
-export const getTradesByUser = async (req, res) => {
+// GET MY TRADES
+export const getMyTrades = async (req, res) => {
   try {
-    const trades = await getTradesByUserDB(req.params.userId);
+    const trades = await getTradesByUserDB(req.user.userId);
     res.json(trades);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch trades by user" });
+    res.status(500).json({ error: "Failed to fetch your trades" });
+  }
+};
+
+// COMPLETE TRADE
+export const completeTrade = async (req, res) => {
+  try {
+    const trade = await getTradeById(req.params.id);
+
+    if (!trade) {
+      return res.status(404).json({ error: "Trade not found" });
+    }
+
+    const userId = req.user.userId.toString();
+    const isRequester = trade.requester.toString() === userId;
+    const isReceiver = trade.receiver.toString() === userId;
+
+    if (!isRequester && !isReceiver) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    if (trade.status !== "accepted") {
+      return res.status(400).json({ error: "Trade must be accepted before completing" });
+    }
+
+    const updated = await updateTradeStatus(req.params.id, "completed");
+
+    await createNotification({
+      recipient: isRequester ? trade.receiver : trade.requester,
+      type: "TRADE_COMPLETED",
+      message: "Bytet har slutförts!",
+      trade: trade._id,
+    });
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to complete trade" });
   }
 };
 
@@ -54,7 +89,40 @@ export const getTrade = async (req, res) => {
 // CREATE TRADE
 //
 export const createNewTrade = async (req, res) => {
-  try {
+  let offered, requested;
+    try {
+    const { offeredPlant, requestedPlant, receiver } = req.body;
+
+   try { 
+        [offered, requested] = await Promise.all([
+        getPlantById(offeredPlant),
+        getPlantById(requestedPlant),
+        ]);
+    } catch (err) {
+        return res.status(400).json({ error: "Invalid plant ID format" });
+}
+    if (!offered || !requested) {
+      return res.status(404).json({
+        error: "One or both plants not found",
+      });
+    }
+
+    if (offered.owner.toString() !== req.user.userId.toString()) {
+      return res.status(403).json({ error: "You don't own the offered plant" });
+    }
+
+    if (requested.owner.toString() !== receiver?.toString()) {
+      return res
+        .status(403)
+        .json({ error: "Requested plant doesn't belong to receiver" });
+    }
+
+    if (!offered.isAvailable || !requested.isAvailable) {
+      return res.status(400).json({
+        error: "One or both plants are not available for trading",
+      });
+    }
+
     const tradeData = {
       ...req.body,
       requester: req.user.userId,
@@ -62,12 +130,21 @@ export const createNewTrade = async (req, res) => {
 
     const newTrade = await createTrade(tradeData);
 
-    await createNotification({
-      recipient: newTrade.receiver,
-      type: "TRADE_REQUEST_RECEIVED",
-      message: "Du har fått en ny bytesförfrågan!",
-      trade: newTrade._id,
-    });
+    try {
+      await createNotification({
+        recipient: newTrade.receiver,
+        type: "TRADE_REQUEST_RECEIVED",
+        message: "Du har fått en ny bytesförfrågan!",
+        trade: newTrade._id,
+      });
+    } catch (notifError) {
+      await deleteTrade(newTrade._id);
+      console.error("🔥 CREATE TRADE ERROR:", notifError);
+      return res.status(500).json({
+        error: notifError.message,
+        stack: notifError.stack,
+      });
+    }
 
     res.status(201).json(newTrade);
   } catch (error) {

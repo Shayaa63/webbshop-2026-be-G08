@@ -10,7 +10,7 @@ import {
   getPlantsByOwnerId,
   updateExistingPlant,
   deletePlantAdmin
-} from "../controllers/plantController.js";
+} from "../controllers/plantsController.js";
 
 import { validatePlants, validatePlantResult, validatePlantUpdate } from "../middleware/plantsValidation.js";
 
