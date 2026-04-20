@@ -3,7 +3,13 @@ import Plant from "../models/Plants.js";
 export async function getPlants(filters = {}) {
   const query = {};
 
-  if (filters.name) query.name = filters.name;
+  if (filters.name) {
+    // Handles both single value and array of values
+    query.name = Array.isArray(filters.name)
+      ? { $in: filters.name }  // handles multiple names if provided as an array
+      : filters.name;
+  }
+
   if (filters.lightLevel) query.lightLevel = Number(filters.lightLevel);
 
   return await Plant.find(query);

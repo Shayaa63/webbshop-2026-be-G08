@@ -14,9 +14,10 @@ import { validationResult } from "express-validator";
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const { name, lightLevel } = req.query;
+    const { lightLevel } = req.query;
+    const name = req.query.name;
     const plants = await getPlants({ name, lightLevel });
     res.json(plants);
   } catch (error) {
