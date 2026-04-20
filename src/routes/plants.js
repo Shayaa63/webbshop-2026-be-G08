@@ -16,8 +16,8 @@ const router = Router();
 
 router.get("/", async (req, res) => {
   try {
-    const { lightLevel } = req.query;
     const name = req.query.name;
+    const lightLevel = req.query.lightLevel;
     const plants = await getPlants({ name, lightLevel });
     res.json(plants);
   } catch (error) {
