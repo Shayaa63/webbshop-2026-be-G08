@@ -1,132 +1,32 @@
 import { Router } from "express";
-import { 
-  getPlants, 
-  getPlantById, 
-  createPlant,
-  deletePlant,
-  getPlantsByOwner,
-  updatePlant
-} from "../db/plants.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { adminOnly } from "../middleware/adminMiddleware.js";
+import {
+  getAllPlants,
+  getPlant,
+  createNewPlant,
+  removePlant,
+  getMyPlants,
+  getPlantsByOwnerId,
+  updateExistingPlant,
+  deletePlantAdmin
+} from "../controllers/plantController.js";
+
 import { validatePlants, validatePlantResult, validatePlantUpdate } from "../middleware/plantsValidation.js";
-import { validationResult } from "express-validator";
 
 const router = Router();
 
-router.get('/', async (req, res) => {
-  try {
-    const { name, lightLevel } = req.query;
-    const plants = await getPlants({ name, lightLevel });
-    res.json(plants);
-  } catch (error) {
-    console.error("Error fetching plants:", error);
-    res.status(500).json({ error: "Failed to fetch plants" });
-  }
-});
+router.get("/", getAllPlants);
+router.get("/mine", protect, getMyPlants);
+router.get("/owner/:ownerId", protect, adminOnly, getPlantsByOwnerId);
+router.get("/:id", getPlant);
 
+router.post("/", protect, validatePlants, validatePlantResult, createNewPlant);
 
-router.get("/mine", protect, async (req, res) => {
-  try {
-    const plants = await getPlantsByOwner(req.user.userId);
-    res.json(plants);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch your plants" });
-  }
-});
+router.delete("/:id", protect, removePlant);
 
-router.get('/owner/:ownerId', protect, adminOnly, async (req, res) => {
-  try {
-    const plants = await getPlantsByOwner(req.params.ownerId);          
-    res.json(plants);
-  } catch (error) {
-    console.error("Error fetching plants by owner:", error);
-    res.status(500).json({ error: "Failed to fetch plants by owner" });
-  }   
-});
+router.put("/:id", protect, validatePlantUpdate, updateExistingPlant);
 
-router.get('/:id', async (req, res) => {
-  try {
-    const plant = await getPlantById(req.params.id);
-    if (!plant) {
-      return res.status(404).json({ error: "Plant not found" });
-    }
-    res.json(plant);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch plant" });
-  }
-});
-
-router.post('/', protect, validatePlants, validatePlantResult, async (req, res) => {
-  console.log("REQ USER IN POST:", req.user);
-  try {
-    const newPlant = await createPlant({
-      ...req.body,
-      owner: req.user.userId
-    });
-
-    res.status(201).json(newPlant);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create plant" });
-  }
-});
-
-router.delete('/:id', protect, async (req, res) => {
-  try {
-    const plant = await getPlantById(req.params.id);
-
-    if (!plant) {
-      return res.status(404).json({ error: "Plant not found" });
-    }
-
-    if (
-      plant.owner.toString() !== req.user.userId &&
-      req.user.role !== "admin"
-    ) {
-      return res.status(403).json({ error: "Not allowed" });
-    }
-
-    await deletePlant(req.params.id);
-
-    res.json({ message: "Plant deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to delete plant" });
-  }
-});
-
-router.put('/:id', protect, async (req, res) => {
-  try {
-    const plant = await getPlantById(req.params.id);
-
-    if (!plant) {
-      return res.status(404).json({ error: "Plant not found" });
-    }
-
-    if (
-      plant.owner.toString() !== req.user.userId &&
-      req.user.role !== "admin"
-    ) {
-      return res.status(403).json({ error: "Not allowed" });
-    }
-
-    await Promise.all(validatePlantUpdate.map(v => v.run(req)));
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({ errors: result.array() });
-    }
-
-    const updatedPlant = await updatePlant(req.params.id, req.body);
-
-    res.json(updatedPlant);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update plant" });
-  }
-});
-
-
-router.delete("/admin/:id", protect, adminOnly, async (req, res) => {
-  await deletePlant(req.params.id);
-  res.json({ message: "Deleted by admin" });
-});
+router.delete("/admin/:id", protect, adminOnly, deletePlantAdmin);
 
 export default router;
