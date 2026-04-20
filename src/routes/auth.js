@@ -84,6 +84,7 @@ router.get("/me", protect, (req, res) => {
 router.put("/me", protect, async (req, res) => {
   const user = await User.findById(req.user.userId);
 
+  if (req.body.name) user.name = req.body.name;
   if (req.body.email) user.email = req.body.email;
   if (req.body.password) user.password = req.body.password;
 
