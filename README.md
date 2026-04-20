@@ -32,7 +32,10 @@ JWT_SECRET=your_secret_key
 ## 3. Run the server
 
 ```bash
-npm run dev
+Requires Node.js >= 18
+
+npm run dev   # starts server with nodemon
+npm start     # production
 ```
 
 ---
@@ -56,7 +59,6 @@ For protected routes, include the token in headers:
 ```http id="k2v9ld"
 Authorization: Bearer <JWT_TOKEN>
 ```
-
 ---
 
 # 👤 Auth Endpoints
@@ -113,12 +115,50 @@ Authorization: Bearer <JWT_TOKEN>
 
 ## ⚠️ Plant Rules
 
-* `name` must match allowed enum values
+* `name` must match Plant schema enum values
 * `species` is required
 * `imageUrl` is required
 * `lightLevel` must be `1`, `2`, or `3`
-* `email` is case-insensitive (use lowercase for consistency)
 
+---
+# 🔄 Trade Endpoints
+
+| Method | Endpoint | Description | Protected |
+|--------|----------|-------------|-----------|
+| GET | `/trades` | Get all trades (admin only) | Yes |
+| GET | `/trades/mine` | Get trades for logged‑in user | Yes |
+| GET | `/trades/:id` | Get trade by ID | Yes |
+| POST | `/trades` | Create a new trade request | Yes |
+| PUT | `/trades/:id/accept` | Accept a trade (receiver only) | Yes |
+| PUT | `/trades/:id/reject` | Reject a trade (receiver only) | Yes |
+| PUT | `/trades/:id/complete` | Mark trade as completed (requester or receiver) | Yes |
+| DELETE | `/trades/:id` | Delete trade (requester or admin) | Yes |
+
+---
+
+## ➕ Create Trade Example
+
+```json
+{
+  "_id": "69e3929c0f294b630c1230b8",
+  "requester": "userId",
+  "receiver": "userId",
+  "offeredPlant": "plantId",
+  "requestedPlant": "plantId",
+  "status": "posted",
+  "createdAt": "2026-04-18T14:18:04.058Z",
+  "updatedAt": "2026-04-18T14:18:04.058Z"
+}
+```
+
+---
+
+## 🔄 Trade Status Flow
+
+```
+posted → accepted → completed
+posted → rejected
+```
 ---
 
 # 🛡️ Admin Features
@@ -129,6 +169,10 @@ Users with role `"admin"` have extended permissions.
 
 * Delete any plant
 * Promote/demote users via role endpoint
+* View **all trades** (`GET /trades`)
+* Delete **any trade** (`DELETE /trades/:id`)
+* View **All trades** via GET /trades
+* Access **all plant and user data** to resolve disputes
 
 ---
 
@@ -183,6 +227,26 @@ Content-Type: application/json
 
 ---
 
+## 🔄 Trade
+
+```js
+{
+  requester: ObjectId → User,      // User who initiates the trade
+  receiver: ObjectId → User,       // User who owns the requested plant
+
+  offeredPlant: ObjectId → Plant,  // Plant from requester
+  requestedPlant: ObjectId → Plant,// Plant from receiver
+
+  status: "posted" | "accepted" | "rejected" | "completed",
+
+  message: String,                 // Optional message
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+---
+
 # 📡 API Responses
 
 ## Success
@@ -228,8 +292,19 @@ Content-Type: application/json
 ```text id="t4k8ff"
 src/
 ├── config/
+├── controllers/
+│   ├── authController.js
+│   ├── plantController.js
+│   └── tradeController.js
+├── db/
+│   ├── users.js
+│   ├── plants.js
+│   └── trades.js
 ├── middleware/
 ├── models/
+│   ├── User.js
+│   ├── Plant.js
+│   └── Trade.js
 ├── routes/
 │   ├── auth.js
 │   ├── plants.js
@@ -271,6 +346,12 @@ fetch(`${BASE_URL}/plants`, {
 
 Plot Twist API provides:
 
-* Secure authentication (JWT)
-* Plant management (CRUD)
-* Role-based access (user/admin)
+- **Secure authentication (JWT)**
+- **Plant management (CRUD)**
+- **Trade system with full lifecycle (posted → accepted/rejected → completed)**
+- **Role‑based access (user/admin)**
+- **Admin moderation for plants, users, and trades**
+- **Validation, ownership checks, and availability logic**
+- **Clean architecture with controllers, routes, and db‑layers**
+
+---
