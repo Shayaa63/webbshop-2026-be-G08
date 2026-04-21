@@ -62,3 +62,11 @@ export const validatePlantResult = (req, res, next) => {
   }
   next();
 };
+
+export const validatePlantUpdate = [
+  body("name").optional().isIn(PLANT_NAMES),
+  body("imageUrl").optional().isURL(),
+  body("lightLevel").optional().isIn([1, 2, 3]),
+  body("description").optional().trim(),
+  body("location.address").optional().trim(),
+];
