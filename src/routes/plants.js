@@ -16,7 +16,17 @@ import { validatePlants, validatePlantResult, validatePlantUpdate } from "../mid
 
 const router = Router();
 
-router.get("/", getAllPlants);
+router.get("/", async (req, res) => {
+  try {
+    const name = req.query.name;
+    const lightLevel = req.query.lightLevel;
+    const plants = await getPlants({ name, lightLevel });
+    res.json(plants);
+  } catch (error) {
+    console.error("Error fetching plants:", error);
+    res.status(500).json({ error: "Failed to fetch plants" });
+  }
+});
 router.get("/mine", protect, getMyPlants);
 router.get("/owner/:ownerId", protect, adminOnly, getPlantsByOwnerId);
 router.get("/:id", getPlant);

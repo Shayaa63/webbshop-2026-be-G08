@@ -3,8 +3,18 @@ import Plant from "../models/Plants.js";
 export async function getPlants(filters = {}) {
   const query = {};
 
-  if (filters.name) query.name = filters.name;
-  if (filters.lightLevel) query.lightLevel = Number(filters.lightLevel);
+  if (filters.name) {
+    query.name = Array.isArray(filters.name)
+      ? { $in: filters.name }
+      : filters.name;
+  }
+
+  if (filters.lightLevel) {
+    // Convert to numbers since lightLevel is stored as Number in MongoDB
+    query.lightLevel = Array.isArray(filters.lightLevel)
+      ? { $in: filters.lightLevel.map(Number) }
+      : Number(filters.lightLevel);
+  }
 
   return await Plant.find(query);
 }
