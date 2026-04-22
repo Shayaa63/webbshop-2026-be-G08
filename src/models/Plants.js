@@ -40,7 +40,7 @@ const plantSchema = new mongoose.Schema(
         "Passionsblomma",
 
         // Övrigt
-        "Övrigt"
+        "Övrigt",
       ],
     },
     species: {
@@ -64,15 +64,19 @@ const plantSchema = new mongoose.Schema(
       enum: [1, 2, 3],
     },
     location: {
+      coordinates: {
+        lat: { type: Number, required: true },
+        lng: { type: Number, required: true },
+      },
       address: {
-        type: String,
+        type: String, 
         trim: true,
       },
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: false
+      required: false,
     },
     isAvailable: {
       type: Boolean,
@@ -81,7 +85,7 @@ const plantSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Plant = mongoose.model("Plant", plantSchema);
