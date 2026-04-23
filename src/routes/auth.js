@@ -6,7 +6,8 @@ import {
   login,
   getMe,
   updateMe,
-  updateUserRole
+  updateUserRole,
+  getAllUsers
 } from "../controllers/authController.js";
 import { validateRegister, validateAuthResult } from "../middleware/authValidation.js";
 
@@ -16,6 +17,7 @@ router.post("/register", validateRegister, validateAuthResult, register);
 router.post("/login", login);
 
 router.get("/me", protect, getMe);
+router.get("/users", protect, adminOnly, getAllUsers);
 router.put("/me", protect, updateMe);
 
 router.patch("/:id/role", protect, adminOnly, updateUserRole);
