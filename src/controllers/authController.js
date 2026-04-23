@@ -59,11 +59,17 @@ export const login = async (req, res) => {
   }
 };
 
-export const getMe = (req, res) => {
-  res.json({
-    message: "Du är inloggad 🔥",
-    user: req.user,
-  });
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select("-password");
+
+    res.json({
+      message: "Du är inloggad 🔥",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const updateMe = async (req, res) => {
