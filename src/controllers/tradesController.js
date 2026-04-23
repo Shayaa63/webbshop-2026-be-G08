@@ -50,7 +50,9 @@ export const completeTrade = async (req, res) => {
     }
 
     if (trade.status !== "accepted") {
-      return res.status(400).json({ error: "Trade must be accepted before completing" });
+      return res
+        .status(400)
+        .json({ error: "Trade must be accepted before completing" });
     }
 
     const updated = await updateTradeStatus(req.params.id, "completed");
@@ -90,17 +92,17 @@ export const getTrade = async (req, res) => {
 //
 export const createNewTrade = async (req, res) => {
   let offered, requested;
-    try {
+  try {
     const { offeredPlant, requestedPlant, receiver } = req.body;
 
-   try { 
-        [offered, requested] = await Promise.all([
+    try {
+      [offered, requested] = await Promise.all([
         getPlantById(offeredPlant),
         getPlantById(requestedPlant),
-        ]);
+      ]);
     } catch (err) {
-        return res.status(400).json({ error: "Invalid plant ID format" });
-}
+      return res.status(400).json({ error: "Invalid plant ID format" });
+    }
     if (!offered || !requested) {
       return res.status(404).json({
         error: "One or both plants not found",
@@ -230,18 +232,19 @@ export const removeTrade = async (req, res) => {
     if (!trade) {
       return res.status(404).json({ error: "Trade not found" });
     }
-
+    const isOwner = String(trade.requester) === String(req.user.userId);
+    const isAdmin = req.user.role === "admin";
     // bara den som skapade trade får ta bort den
-    if (trade.requester.toString() !== req.user.userId.toString()) {
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: "Only requester can delete trade" });
     }
+    const isDeletableStatus = ["pending", "posted"].includes(trade.status);
 
-    if (!["pending", "posted"].includes(trade.status)) {
+    if (!isAdmin && !isDeletableStatus) {
       return res.status(400).json({
-        error: "Only pending or posted trades can be deleted",
+        error: "Du kan bara ångra väntande förfrågningar",
       });
     }
-
     await deleteTrade(req.params.id);
 
     res.json({ message: "Trade cancelled successfully" });

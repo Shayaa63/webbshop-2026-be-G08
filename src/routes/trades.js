@@ -25,6 +25,6 @@ router.put("/:id/accept", protect, validateTradeResult, acceptTrade);
 router.put("/:id/reject", protect, validateTradeResult, rejectTrade);
 router.put("/:id/complete", protect, completeTrade);
 
-router.delete("/:id", protect, adminOnly, removeTrade);
+router.delete("/:id", protect, removeTrade);
 
 export default router;
