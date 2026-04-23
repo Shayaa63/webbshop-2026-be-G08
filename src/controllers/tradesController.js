@@ -231,13 +231,20 @@ export const removeTrade = async (req, res) => {
       return res.status(404).json({ error: "Trade not found" });
     }
 
+    // bara den som skapade trade får ta bort den
     if (trade.requester.toString() !== req.user.userId.toString()) {
       return res.status(403).json({ error: "Only requester can delete trade" });
     }
 
+    if (!["pending", "posted"].includes(trade.status)) {
+      return res.status(400).json({
+        error: "Only pending or posted trades can be deleted",
+      });
+    }
+
     await deleteTrade(req.params.id);
 
-    res.json({ message: "Trade deleted successfully" });
+    res.json({ message: "Trade cancelled successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete trade" });
   }
